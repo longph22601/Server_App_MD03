@@ -189,6 +189,21 @@ const rating = asyncHandler(async (req, res) => {
   }
 });
 
+const searchProduct = asyncHandler(async (req, res) => {
+  try {
+    const { keyword } = req.query;
+    if (!keyword) {
+      return res.status(400).json({ message: "Keyword is required for search" });
+    }
+
+    const products = await Product.find({ title: { $regex: keyword, $options: "i" } });
+
+    res.json(products);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
 module.exports = {
   createProduct,
   getaProduct,
@@ -197,4 +212,5 @@ module.exports = {
   deleteProduct,
   addToWishlist,
   rating,
+  searchProduct,
 };

@@ -14,6 +14,7 @@ const router = express.Router();
 router.post("/", authMiddleware, isAdmin, createProduct);
 
 router.get("/:id", getaProduct);
+router.get("/search", searchProduct); // Thêm dòng này cho tìm kiếm sản phẩm theo từ khóa
 router.put("/wishlist", authMiddleware, addToWishlist);
 router.put("/rating", authMiddleware, rating);
 
