@@ -133,6 +133,42 @@ const addToWishlist = asyncHandler(async (req, res) => {
   }
 });
 
+const getWishlist = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  try {
+    const user = await User.findById(_id).populate("wishlist");
+    res.json(user.wishlist);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+// Hàm mới để lấy các sản phẩm phổ biến theo tag
+const getPopularProductsByTag = asyncHandler(async (req, res) => {
+  const { tag } = req.params;
+  try {
+    const popularProducts = await Product.find({ tags: tag })
+      .sort({ sold: -1 })  // Sắp xếp theo số lượng đã bán giảm dần
+      .limit(10);  // Giới hạn 10 sản phẩm phổ biến nhất
+    res.json(popularProducts);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+// Hàm mới để lấy các sản phẩm mới nhất theo tag
+const getNewArrivalsByTag = asyncHandler(async (req, res) => {
+  const { tag } = req.params;
+  try {
+    const newArrivals = await Product.find({ tags: tag })
+      .sort({ createdAt: -1 })  // Sắp xếp theo ngày tạo giảm dần
+      .limit(10);  // Giới hạn 10 sản phẩm mới nhất
+    res.json(newArrivals);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
 const rating = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   const { star, prodId, comment } = req.body;
@@ -211,6 +247,9 @@ module.exports = {
   updateProduct,
   deleteProduct,
   addToWishlist,
+  getWishlist,
   rating,
   searchProduct,
+  getPopularProductsByTag,
+  getNewArrivalsByTag,
 };
