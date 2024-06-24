@@ -4,6 +4,7 @@ const Cart = require("../models/cartModel");
 const Coupon = require("../models/couponModel");
 const Order = require("../models/orderModel");
 const uniqid = require("uniqid");
+const passport = require('../config/passport');
 
 const asyncHandler = require("express-async-handler");
 const { generateToken } = require("../config/jwtToken");
@@ -522,6 +523,14 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   } catch (error) {
     throw new Error(error);
   }
+});
+
+exports.googleAuth = passport.authenticate('google', {
+  scope: ['profile', 'email']
+});
+
+exports.googleAuthCallback = passport.authenticate('google', {
+  failureRedirect: '/login',
 });
 
 module.exports = {

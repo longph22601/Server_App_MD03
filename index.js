@@ -1,6 +1,9 @@
 const bodyParser = require("body-parser");
 const express = require("express");
+const session = require('express-session');
+const passport = require('passport');
 const dbConnect = require("./config/dbConnect");
+require('./config/passport');
 const { notFound, errorHandler } = require("./middlewares/errorHandler");
 const app = express();
 const dotenv = require("dotenv").config();
@@ -23,6 +26,18 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+// Cấu hình session
+app.use(session({
+  secret: 'your_secret_key',
+  resave: false,
+  saveUninitialized: true,
+}));
+
+// Middleware cho Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use("/api/user", authRouter);
 app.use("/api/product", productRouter);
 app.use("/api/category", categoryRouter);

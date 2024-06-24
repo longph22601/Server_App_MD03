@@ -23,7 +23,7 @@ var productSchema = new mongoose.Schema(
       required: true,
     },
     size: {
-      type: Number,
+      type: [Number],
       required: true,
     },
     category: {
