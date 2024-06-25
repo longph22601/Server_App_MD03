@@ -61,11 +61,11 @@ router.put("/save-address", authMiddleware, saveAddress);
 router.put("/block-user/:id", authMiddleware, isAdmin, blockUser);
 router.put("/unblock-user/:id", authMiddleware, isAdmin, unblockUser);
 
-// Route để khởi động xác thực với Google
-router.get('/google', authController.googleAuth);
+// // Route để khởi động xác thực với Google
+// router.get('/google', authController.googleAuth);
 
-// Route callback của Google sau khi xác thực thành công
-router.get('/google/callback', authController.googleAuthCallback);
+// // Route callback của Google sau khi xác thực thành công
+// router.get('/google/callback', authController.googleAuthCallback);
 
 
 module.exports = router;

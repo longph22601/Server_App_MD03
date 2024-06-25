@@ -1,6 +1,0 @@
-MONGODB_URL= "mongodb+srv://mailonggt2020:Long2003@cluster0.asn5uvu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-PORT=5000;
-JWT_SECRET=mysecret;
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-
