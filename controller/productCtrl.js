@@ -147,7 +147,7 @@ const getWishlist = asyncHandler(async (req, res) => {
 const getPopularProductsByTag = asyncHandler(async (req, res) => {
   const { tag } = req.params;
   try {
-    const popularProducts = await Product.find({ tags: tag })
+    const popularProducts = await Product.find({ brand: tag })
       .sort({ sold: -1 })  // Sắp xếp theo số lượng đã bán giảm dần
       .limit(10);  // Giới hạn 10 sản phẩm phổ biến nhất
     res.json(popularProducts);
@@ -160,7 +160,7 @@ const getPopularProductsByTag = asyncHandler(async (req, res) => {
 const getNewArrivalsByTag = asyncHandler(async (req, res) => {
   const { tag } = req.params;
   try {
-    const newArrivals = await Product.find({ tags: tag })
+    const newArrivals = await Product.find({ brand: tag })
       .sort({ createdAt: -1 })  // Sắp xếp theo ngày tạo giảm dần
       .limit(10);  // Giới hạn 10 sản phẩm mới nhất
     res.json(newArrivals);
