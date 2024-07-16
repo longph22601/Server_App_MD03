@@ -342,37 +342,80 @@ const userCart = asyncHandler(async (req, res) => {
   const { cart } = req.body;
   const { _id } = req.user;
   validateMongoDbId(_id);
+
   try {
     let products = [];
     const user = await User.findById(_id);
-    // check if user already have product in cart
+    
+    // Tìm giỏ hàng hiện tại của người dùng
     const alreadyExistCart = await Cart.findOne({ orderby: user._id });
     if (alreadyExistCart) {
-      alreadyExistCart.remove();
+      // Kiểm tra từng sản phẩm trong giỏ hàng mới
+      for (let i = 0; i < cart.length; i++) {
+        let object = {};
+        object.product = cart[i]._id;
+        object.count = cart[i].count;
+        object.color = cart[i].color;
+
+        let getPrice = await Product.findById(cart[i]._id).select("price").exec();
+        object.price = getPrice.price;
+
+        // Kiểm tra xem sản phẩm đã có trong giỏ hàng chưa
+        const existingProductIndex = alreadyExistCart.products.findIndex(
+          (item) => item.product.toString() === cart[i]._id && item.color === cart[i].color
+        );
+
+        if (existingProductIndex !== -1) {
+          // Tăng số lượng nếu sản phẩm đã có
+          alreadyExistCart.products[existingProductIndex].count += cart[i].count;
+        } else {
+          // Thêm sản phẩm mới nếu chưa có
+          alreadyExistCart.products.push(object);
+        }
+      }
+
+      // Tính lại tổng giá trị giỏ hàng
+      let cartTotal = 0;
+      for (let i = 0; i < alreadyExistCart.products.length; i++) {
+        cartTotal += alreadyExistCart.products[i].price * alreadyExistCart.products[i].count;
+      }
+
+      alreadyExistCart.cartTotal = cartTotal;
+
+      // Lưu giỏ hàng cập nhật vào cơ sở dữ liệu
+      const updatedCart = await alreadyExistCart.save();
+      res.json(updatedCart);
+    } else {
+      // Tạo giỏ hàng mới nếu không có giỏ hàng hiện tại
+      for (let i = 0; i < cart.length; i++) {
+        let object = {};
+        object.product = cart[i]._id;
+        object.count = cart[i].count;
+        object.color = cart[i].color;
+
+        let getPrice = await Product.findById(cart[i]._id).select("price").exec();
+        object.price = getPrice.price;
+
+        products.push(object);
+      }
+
+      let cartTotal = 0;
+      for (let i = 0; i < products.length; i++) {
+        cartTotal += products[i].price * products[i].count;
+      }
+
+      let newCart = await new Cart({
+        products,
+        cartTotal,
+        orderby: user._id,
+      }).save();
+      res.json(newCart);
     }
-    for (let i = 0; i < cart.length; i++) {
-      let object = {};
-      object.product = cart[i]._id;
-      object.count = cart[i].count;
-      object.color = cart[i].color;
-      let getPrice = await Product.findById(cart[i]._id).select("price").exec();
-      object.price = getPrice.price;
-      products.push(object);
-    }
-    let cartTotal = 0;
-    for (let i = 0; i < products.length; i++) {
-      cartTotal = cartTotal + products[i].price * products[i].count;
-    }
-    let newCart = await new Cart({
-      products,
-      cartTotal,
-      orderby: user?._id,
-    }).save();
-    res.json(newCart);
   } catch (error) {
     throw new Error(error);
   }
 });
+
 
 const getUserCart = asyncHandler(async (req, res) => {
   const { _id } = req.user;

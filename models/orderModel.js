@@ -30,6 +30,15 @@ var orderSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    totalAmount: {
+      type: Number,
+      required: true,
+    },
+    paymentMethod: {
+      type: String,
+      enum: ["Cash", "Momo", "Paypal"],
+      default: "Cash",
+    },
   },
   {
     timestamps: true,
