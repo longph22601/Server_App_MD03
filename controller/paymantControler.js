@@ -1,6 +1,6 @@
 const axios = require('axios');
 const asyncHandler = require('express-async-handler');
-const {Order} = require('../models/orderModel');
+const Order = require('../models/orderModel');
 const crypto = require('crypto');
 
 // const createMomoPayment = asyncHandler(async (req, res) => {
@@ -51,6 +51,10 @@ exports.cashPayment = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
   try {
+    console.log('Received products:', products);
+    console.log('Total amount:', totalAmount);
+    console.log('User ID:', userId);
+
     const newOrder = new Order({
       products,
       totalAmount,
@@ -59,9 +63,12 @@ exports.cashPayment = asyncHandler(async (req, res) => {
       orderby: userId,
     });
 
+    console.log('New Order:', newOrder);
+
     const savedOrder = await newOrder.save();
     res.status(201).json(savedOrder);
   } catch (error) {
+    console.error('Error saving order:', error.message);
     res.status(500).json({ message: error.message });
   }
 });

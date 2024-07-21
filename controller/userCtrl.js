@@ -43,30 +43,52 @@ const createUser = asyncHandler(async (req, res) => {
 // Login a user
 const loginUserCtrl = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  // check if user exists or not
+
+  console.log("Received email:", email);
+  console.log("Received password:", password);
+
+  // Check if user exists or not
   const findUser = await User.findOne({ email });
-  if (findUser && (await findUser.isPasswordMatched(password))) {
-    const refreshToken = await generateRefreshToken(findUser?._id);
-    const updateuser = await User.findByIdAndUpdate(
+
+  if (!findUser) {
+    console.log("User not found with email:", email);
+    throw new Error("Invalid Credentials");
+  }
+
+  const isMatch = await findUser.isPasswordMatched(password);
+
+  if (!isMatch) {
+    console.log("Password does not match for user:", email);
+    throw new Error("Invalid Credentials");
+  }
+
+  if (findUser && isMatch) {
+    const refreshToken = await generateRefreshToken(findUser._id);
+    const updateUser = await User.findByIdAndUpdate(
       findUser.id,
       {
         refreshToken: refreshToken,
       },
       { new: true }
     );
+
+    console.log("User logged in successfully:", findUser.email);
+    
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       maxAge: 72 * 60 * 60 * 1000,
     });
+
     res.json({
-      _id: findUser?._id,
-      firstname: findUser?.firstname,
-      lastname: findUser?.lastname,
-      email: findUser?.email,
-      mobile: findUser?.mobile,
-      token: generateToken(findUser?._id),
+      _id: findUser._id,
+      firstname: findUser.firstname,
+      lastname: findUser.lastname,
+      email: findUser.email,
+      mobile: findUser.mobile,
+      token: generateToken(findUser._id),
     });
   } else {
+    console.log("Invalid Credentials for user:", email);
     throw new Error("Invalid Credentials");
   }
 });
