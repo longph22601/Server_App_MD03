@@ -451,7 +451,7 @@ const getUserCart = asyncHandler(async (req, res) => {
     throw new Error(error);
   }
 });
-
+// api Xoá toàn bộ product trong giỏ hàng 
 const emptyCart = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   validateMongoDbId(_id);
@@ -463,6 +463,38 @@ const emptyCart = asyncHandler(async (req, res) => {
     throw new Error(error);
   }
 });
+// api chọn product muốn xoá trong giỏ hàng 
+const removeProductFromCart = asyncHandler(async (req, res) => {
+  const { productId } = req.body;
+  const { _id } = req.user;
+  validateMongoDbId(_id);
+
+  try {
+    const user = await User.findById(_id);
+    const cart = await Cart.findOne({ orderby: user._id });
+
+    if (!cart) {
+      res.status(404).json({ message: "Cart not found" });
+      return;
+    }
+
+    const updatedProducts = cart.products.filter(product => product.product.toString() !== productId);
+
+    if (updatedProducts.length === cart.products.length) {
+      res.status(404).json({ message: "Product not found in cart" });
+      return;
+    }
+
+    cart.products = updatedProducts;
+    cart.cartTotal = updatedProducts.reduce((acc, item) => acc + item.price * item.count, 0);
+
+    const updatedCart = await cart.save();
+    res.json(updatedCart);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 
 const applyCoupon = asyncHandler(async (req, res) => {
   const { coupon } = req.body;
@@ -618,6 +650,7 @@ module.exports = {
   userCart,
   getUserCart,
   emptyCart,
+  removeProductFromCart,
   applyCoupon,
   createOrder,
   getOrders,

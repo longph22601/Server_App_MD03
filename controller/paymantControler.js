@@ -1,6 +1,8 @@
 const axios = require('axios');
 const asyncHandler = require('express-async-handler');
 const Order = require('../models/orderModel');
+const Cart = require('../models/cartModel'); // Import mô hình Cart
+const Product = require('../models/productModel'); // Import mô hình Product
 const crypto = require('crypto');
 
 // const createMomoPayment = asyncHandler(async (req, res) => {
@@ -45,15 +47,23 @@ const crypto = require('crypto');
 //     });
 //   }
 // });
-
 exports.cashPayment = asyncHandler(async (req, res) => {
-  const { products, totalAmount } = req.body;
+  const { products } = req.body; // Không cần tổng số tiền từ phía người dùng
   const userId = req.user._id;
 
   try {
     console.log('Received products:', products);
-    console.log('Total amount:', totalAmount);
     console.log('User ID:', userId);
+
+    // Tính tổng số tiền dựa trên sản phẩm trong giỏ hàng
+    let totalAmount = 0;
+    for (const item of products) {
+      const product = await Product.findById(item.product).select('price');
+      if (!product) {
+        throw new Error(`Product with id ${item.product} not found`);
+      }
+      totalAmount += product.price * item.count;
+    }
 
     const newOrder = new Order({
       products,
@@ -72,5 +82,4 @@ exports.cashPayment = asyncHandler(async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
 
