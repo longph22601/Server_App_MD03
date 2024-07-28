@@ -39,6 +39,14 @@ var orderSchema = new mongoose.Schema(
       enum: ["Cash", "Momo", "Paypal"],
       default: "Cash",
     },
+    phone: {
+      type: String,
+      required: true,
+    },
+    address: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: true,

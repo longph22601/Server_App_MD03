@@ -1,6 +1,7 @@
 const axios = require('axios');
 const asyncHandler = require('express-async-handler');
 const Order = require('../models/orderModel');
+const User = require('../models/userModel')
 const Cart = require('../models/cartModel'); // Import mô hình Cart
 const Product = require('../models/productModel'); // Import mô hình Product
 const crypto = require('crypto');
@@ -55,6 +56,15 @@ exports.cashPayment = asyncHandler(async (req, res) => {
     console.log('Received products:', products);
     console.log('User ID:', userId);
 
+    // Truy xuất thông tin người dùng
+    const user = await User.findById(userId).select('mobile address');
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    console.log('User Phone:', user.mobile);
+    console.log('User Address:', user.address);
+
     // Tính tổng số tiền dựa trên sản phẩm trong giỏ hàng
     let totalAmount = 0;
     for (const item of products) {
@@ -71,6 +81,8 @@ exports.cashPayment = asyncHandler(async (req, res) => {
       paymentMethod: 'Cash',
       orderStatus: 'Not Processed',
       orderby: userId,
+      phone: user.mobile || '', // Lấy số điện thoại từ người dùng
+      address: user.address || '', // Lấy địa chỉ từ người dùng
     });
 
     console.log('New Order:', newOrder);
@@ -82,4 +94,5 @@ exports.cashPayment = asyncHandler(async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
 
