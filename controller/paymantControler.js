@@ -49,7 +49,7 @@ const crypto = require('crypto');
 //   }
 // });
 exports.cashPayment = asyncHandler(async (req, res) => {
-  const { products } = req.body; // Không cần tổng số tiền từ phía người dùng
+  const { products, orderStatus } = req.body; // Thêm orderStatus từ phía người dùng
   const userId = req.user._id;
 
   try {
@@ -79,15 +79,17 @@ exports.cashPayment = asyncHandler(async (req, res) => {
       products,
       totalAmount,
       paymentMethod: 'Cash',
-      orderStatus: 'Not Processed',
+      orderStatus: orderStatus || 'Not Processed', // Sử dụng orderStatus từ yêu cầu hoặc mặc định là 'Not Processed'
       orderby: userId,
-      phone: user.mobile || '', // Lấy số điện thoại từ người dùng
-      address: user.address || '', // Lấy địa chỉ từ người dùng
+      phone: user.mobile || '', // Lấy số điện thoại từ người dùng hoặc để trống
+      address: user.address || '', // Lấy địa chỉ từ người dùng hoặc để trống
     });
 
     console.log('New Order:', newOrder);
 
     const savedOrder = await newOrder.save();
+
+    await Cart.findOneAndDelete({ orderby: userId });
     res.status(201).json(savedOrder);
   } catch (error) {
     console.error('Error saving order:', error.message);

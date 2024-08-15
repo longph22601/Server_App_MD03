@@ -84,8 +84,8 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
       firstname: findUser.firstname,
       lastname: findUser.lastname,
       email: findUser.email,
-      mobile: findUser.mobile,
-      address: findUser.address,
+      mobile: findUser.mobile || '',
+      address: findUser.address || '',
       token: generateToken(findUser._id),
     });
   } else {
@@ -622,6 +622,8 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     throw new Error(error);
   }
 });
+
+
 
 // exports.googleAuth = passport.authenticate('google', {
 //   scope: ['profile', 'email']
