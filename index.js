@@ -9,7 +9,6 @@ const app = express();
 const dotenv = require("dotenv").config();
 const PORT = 3000;
 const paymentRoutes = require('./routes/paymentRoutes');
-
 const authRouter = require("./routes/authRoute");
 const productRouter = require("./routes/productRoute");
 const categoryRouter = require("./routes/prodcategoryRoute");
@@ -51,7 +50,6 @@ app.use("/api/enquiry", enqRouter);
 app.use("/api/upload", uploadRouter);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/static', staticRouter);
-
 
 app.use(notFound);
 app.use(errorHandler);

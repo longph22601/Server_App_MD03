@@ -14,11 +14,12 @@ const {
 } = require("../controller/productCtrl");
 const { isAdmin, authMiddleware } = require("../middlewares/authMiddleware");
 const router = express.Router();
+router.get("/search", searchProduct); // Thêm dòng này cho tìm kiếm sản phẩm theo từ khóa
+
 
 router.post("/", authMiddleware, isAdmin, createProduct);
 
 router.get("/:id", getaProduct);
-router.get("/search", searchProduct); // Thêm dòng này cho tìm kiếm sản phẩm theo từ khóa
 router.put("/wishlist", authMiddleware, addToWishlist);
 router.get("/wishlist", authMiddleware, getWishlist); // Route lấy danh sách yêu thích
 router.put("/rating", authMiddleware, rating);

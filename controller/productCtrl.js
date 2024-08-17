@@ -226,16 +226,22 @@ const rating = asyncHandler(async (req, res) => {
 });
 
 const searchProduct = asyncHandler(async (req, res) => {
+  console.log("Search product API called"); // Check if API is hit
+  
   try {
     const { keyword } = req.query;
+    console.log("Keyword:", keyword); // Check the keyword received
+    
     if (!keyword) {
       return res.status(400).json({ message: "Keyword is required for search" });
     }
 
     const products = await Product.find({ title: { $regex: keyword, $options: "i" } });
+    console.log("Products found:", products); // Log the products found
 
     res.json(products);
   } catch (error) {
+    console.error("Search error:", error.message);
     res.status(400).json({ message: error.message });
   }
 });
