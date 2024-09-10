@@ -240,7 +240,7 @@ const searchProduct = asyncHandler(async (req, res) => {
     console.log("Products found:", products); // Log the products found
 
     res.json(products);
-  } catch (error) {
+  } catch (error) { 
     console.error("Search error:", error.message);
     res.status(400).json({ message: error.message });
   }

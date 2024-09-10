@@ -97,4 +97,30 @@ exports.cashPayment = asyncHandler(async (req, res) => {
   }
 });
 
+// API để admin cập nhật trạng thái đơn hàng
+exports.updateOrderStatus = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+  const { orderStatus } = req.body;
+
+  try {
+    // Tìm đơn hàng theo ID
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Cập nhật trạng thái đơn hàng
+    order.orderStatus = orderStatus;
+    const updatedOrder = await order.save();
+
+    res.json({
+      message: 'Order status updated successfully',
+      updatedOrder,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
 
