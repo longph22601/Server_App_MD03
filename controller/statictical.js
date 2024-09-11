@@ -100,5 +100,23 @@ exports.getTopSellingProducts = asyncHandler(async (req, res) => {
       res.status(500).json({ message: error.message });
     }
   });
+
+  // API để hiển thị lịch sử mua hàng của người dùng
+exports.getUserOrderHistory = asyncHandler(async (req, res) => {
+  const userId = req.user._id;  // Lấy userId từ token sau khi đã xác thực
+
+  try {
+    // Tìm tất cả các đơn hàng của người dùng
+    const orders = await Order.find({ orderby: userId }).populate('products.product', 'title price');
+
+    if (!orders || orders.length === 0) {
+      return res.status(404).json({ message: 'No order history found' });
+    }
+
+    res.json(orders);  // Trả về danh sách đơn hàng
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
   
   
