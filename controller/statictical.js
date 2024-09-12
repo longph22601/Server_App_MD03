@@ -34,32 +34,35 @@ exports.getRevenueLast7Days = asyncHandler(async (req, res) => {
 });
 
 // API thống kê doanh thu theo tháng
-exports.getRevenueByMonth = asyncHandler(async (req, res) => {
-    const currentYear = new Date().getFullYear();
-  
-    try {
-      const orders = await Order.aggregate([
-        {
-          $match: {
-            createdAt: { $gte: new Date(`${currentYear}-01-01`), $lt: new Date(`${currentYear + 1}-01-01`) },
-            orderStatus: 'Delivered', // Chỉ tính các đơn hàng đã giao
-          },
-        },
-        {
-          $group: {
-            _id: { $month: '$createdAt' },
-            totalRevenue: { $sum: '$totalAmount' },
-            count: { $sum: 1 },
-          },
-        },
-        { $sort: { _id: 1 } },
-      ]);
-  
-      res.status(200).json(orders);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
+exports.getOrdersByMonth = asyncHandler(async (req, res) => {
+  const currentYear = new Date().getFullYear();
+  const month = parseInt(req.query.month); // Lấy tháng từ query parameter
+
+  try {
+    // Kiểm tra nếu month hợp lệ
+    if (!month || isNaN(month) || month < 1 || month > 12) {
+      return res.status(400).json({ message: "Invalid month parameter. Please provide a valid month (1-12)." });
     }
-  });
+
+    const startDate = new Date(`${currentYear}-${month}-01`);
+    const endDate = new Date(`${currentYear}-${month + 1}-01`);
+
+    // Lấy danh sách tất cả đơn hàng trong tháng cụ thể
+    const orders = await Order.find({
+      createdAt: { $gte: startDate, $lt: endDate }, // Điều kiện tìm kiếm theo tháng
+      orderStatus: 'Delivered', // Chỉ lấy các đơn hàng đã giao
+    }).populate('products.product', 'title price') // Sử dụng populate để lấy thông tin sản phẩm
+
+    if (orders.length === 0) {
+      return res.status(404).json({ message: 'No orders found for the selected month' });
+    }
+
+    res.status(200).json(orders);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 
   // API thống kê sản phẩm bán chạy
 exports.getTopSellingProducts = asyncHandler(async (req, res) => {
