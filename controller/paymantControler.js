@@ -1,10 +1,10 @@
-const axios = require('axios');
-const asyncHandler = require('express-async-handler');
-const Order = require('../models/orderModel');
-const User = require('../models/userModel')
-const Cart = require('../models/cartModel'); // Import mô hình Cart
-const Product = require('../models/productModel'); // Import mô hình Product
-const crypto = require('crypto');
+const axios = require("axios");
+const asyncHandler = require("express-async-handler");
+const Order = require("../models/orderModel");
+const User = require("../models/userModel");
+const Cart = require("../models/cartModel"); // Import mô hình Cart
+const Product = require("../models/productModel"); // Import mô hình Product
+const crypto = require("crypto");
 
 // const createMomoPayment = asyncHandler(async (req, res) => {
 //   const { amount, orderId, orderInfo } = req.body;
@@ -53,22 +53,22 @@ exports.cashPayment = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
   try {
-    console.log('Received products:', products);
-    console.log('User ID:', userId);
+    console.log("Received products:", products);
+    console.log("User ID:", userId);
 
     // Truy xuất thông tin người dùng
-    const user = await User.findById(userId).select('mobile address');
+    const user = await User.findById(userId).select("mobile address");
     if (!user) {
-      throw new Error('User not found');
+      throw new Error("User not found");
     }
 
-    console.log('User Phone:', user.mobile);
-    console.log('User Address:', user.address);
+    console.log("User Phone:", user.mobile);
+    console.log("User Address:", user.address);
 
     // Tính tổng số tiền dựa trên sản phẩm trong giỏ hàng
     let totalAmount = 0;
     for (const item of products) {
-      const product = await Product.findById(item.product).select('price');
+      const product = await Product.findById(item.product).select("price");
       if (!product) {
         throw new Error(`Product with id ${item.product} not found`);
       }
@@ -78,21 +78,21 @@ exports.cashPayment = asyncHandler(async (req, res) => {
     const newOrder = new Order({
       products,
       totalAmount,
-      paymentMethod: 'Cash',
-      orderStatus: orderStatus || 'Not Processed', // Sử dụng orderStatus từ yêu cầu hoặc mặc định là 'Not Processed'
+      paymentMethod: "Cash",
+      orderStatus: orderStatus || "Not Processed", // Sử dụng orderStatus từ yêu cầu hoặc mặc định là 'Not Processed'
       orderby: userId,
-      phone: user.mobile || '', // Lấy số điện thoại từ người dùng hoặc để trống
-      address: user.address || '', // Lấy địa chỉ từ người dùng hoặc để trống
+      phone: user.mobile || "", // Lấy số điện thoại từ người dùng hoặc để trống
+      address: user.address || "", // Lấy địa chỉ từ người dùng hoặc để trống
     });
 
-    console.log('New Order:', newOrder);
+    console.log("New Order:", newOrder);
 
     const savedOrder = await newOrder.save();
 
     await Cart.findOneAndDelete({ orderby: userId });
     res.status(201).json(savedOrder);
   } catch (error) {
-    console.error('Error saving order:', error.message);
+    console.error("Error saving order:", error.message);
     res.status(500).json({ message: error.message });
   }
 });
@@ -106,7 +106,7 @@ exports.updateOrderStatus = asyncHandler(async (req, res) => {
     // Tìm đơn hàng theo ID
     const order = await Order.findById(orderId);
     if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
+      return res.status(404).json({ message: "Order not found" });
     }
 
     // Cập nhật trạng thái đơn hàng
@@ -114,13 +114,69 @@ exports.updateOrderStatus = asyncHandler(async (req, res) => {
     const updatedOrder = await order.save();
 
     res.json({
-      message: 'Order status updated successfully',
+      message: "Order status updated successfully",
       updatedOrder,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
+exports.getOrderById = asyncHandler(async (req, res) => {
+  const { orderId } = req.params; // Get the order ID from the request parameters
 
+  try {
+    // Find the order by its ID and populate product details
+    const order = await Order.findById(orderId).populate(
+      "products.product",
+      "title price"
+    );
 
+    // Check if the order exists
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
 
+    // Return the order details
+    res.status(200).json(order);
+  } catch (error) {
+    // Handle any errors
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// API to update order status
+exports.updateOrderStatus = asyncHandler(async (req, res) => {
+  const { orderId } = req.params; // Get the order ID from the request parameters
+  const { orderStatus } = req.body; // Get the new order status from the request body
+
+  try {
+    // Validate order status input
+    if (!orderStatus) {
+      return res.status(400).json({ message: "Order status is required." });
+    }
+
+    // Update the order status directly without full validation
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      { orderStatus }, // Update only the orderStatus field
+      { new: true, runValidators: false } // Disable validators to prevent the error
+    );
+
+    // Check if the order exists
+    if (!updatedOrder) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Return the updated order
+    res.json({
+      message: "Order status updated successfully",
+      updatedOrder,
+    });
+  } catch (error) {
+    console.error("Error updating order status:", error); // Log the error to server console
+    // Handle any errors
+    res
+      .status(500)
+      .json({ message: `Error updating order status: ${error.message}` });
+  }
+});
